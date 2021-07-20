@@ -1,7 +1,7 @@
 using Base: Float64
 using DelimitedFiles
 
-include("bndmtr.jl")
+include("bound_matrix.jl")
 
 Nexp = 6
 
@@ -27,4 +27,4 @@ println("alpha = ", alpha, " sh = ", sh, " ss = ", ss)
 ip = Array{Int}(undef, llp)
 jp = Array{Int}(undef, llp)
 
-bndmtr!()
+bound_matrix!()

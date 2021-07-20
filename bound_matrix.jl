@@ -1,7 +1,7 @@
-function bndmtr!()
+function bound_matrix!()
 
-    ar = 2/Mm1
-    r0 = 1/alpha
+    ar = 2 / Mm1
+    r0 = 1 / alpha
     az = sh*ar
 
     # Index vector interior neighbours to boundary, bottom-top
@@ -59,7 +59,7 @@ function bndmtr!()
         zt[nl] = j*az
         zt[nl + 1] = zt[nl]
         jp[nl] = j*Mr + 1
-        jp[nl + 1] = (j + 1)*Mr
+        jp[nl + 1] = (j + 1) * Mr
         nl += 2
     end
 
