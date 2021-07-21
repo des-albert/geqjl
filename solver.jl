@@ -3,6 +3,8 @@ using Base: Float64
     using SpecialFunctions
 
     include("bound_matrix.jl")
+    include("eqsil.jl")
+    include("flux.jl")
 
     Nexp = 6
 
@@ -26,9 +28,9 @@ using Base: Float64
     end
 
 
-    ip = Vector{Int}(undef, llp)
-    jp = Vector{Int}(undef, llp)
-    aux = Array{Float64, 2}(undef, llp, llp)
+    ip = zeros(Int, llp)
+    jp = zeros(Int, llp)
+    aux = zeros(llp, llp)
 
     dr = (Rmax - Rmin) / Mm1
     dz = (Zmax - Zmin) / Nm1
@@ -36,8 +38,8 @@ using Base: Float64
     sh = dz / dr
     ss = sh^2
 
-    R = Vector{Float64}(undef, Mr)
-    Z = Vector{Float64}(undef, Nz)
+    R = zeros(Mr)
+    Z = zeros(Nz)
 
     for i in 1:Mr
         R[i] = Rmin + (i - 1) * dr
@@ -53,17 +55,18 @@ using Base: Float64
 
     bound_matrix!()
 
-    println(aux[22, 32])
+    println("aux = ",aux[53, 12])
+
 
     # Read Poloidal Field Coil Data
 
     Mc = 15
     Ng = 1
-    ic = Vector{Int}(undef, 15)
-    Ra = Array{Float64, 2}(undef, Ng, Mc)
-    Za = Array{Float64, 2}(undef, Ng, Mc)
-    Ex = Array{Float64, 2}(undef, Ng, Mc)
-    Rl = Array{Float64, 2}(undef, Ng, Mc)
+    ic = zeros(Int, 15)
+    Ra = zeros(Ng, Mc)
+    Za = zeros(Ng, Mc)
+    Ex = zeros(Ng, Mc)
+    Rl = zeros(Ng, Mc)
 
     k = 0
     while (true)
@@ -105,11 +108,11 @@ using Base: Float64
     elxp = abs(Offset - Zxpsn)/Apl
     trixp = (Rmpl - Rxpsn)/Apl
 
-    ityp = Vector{Int}(undef, 6)
-    Rc = Vector{Float64}(undef, Mc)
-    Zc = Vector{Float64}(undef, Mc)
-    Rcc = Vector{Float64}(undef, 16)
-    Zcc = Vector{Float64}(undef, 16)
+    ityp = zeros(Int, 6)
+    Rc = zeros(Mc)
+    Zc = zeros(Mc)
+    Rcc = zeros(16)
+    Zcc = zeros(16)
 
     for j in 1:3
         ityp[j] = j
@@ -155,4 +158,41 @@ using Base: Float64
         for j in 1:16
             println(" ",j,"  ",Rcc[j],"  ",Zcc[j])
         end
+    end
+
+    expsi = zeros(MN)
+    fool = zeros(MN)
+    psiext = zeros(MN, Mc)
+
+    for kk in 1:Mmax
+        icl = ic[kk]
+        for i in 1:Nz
+           nof = (i - 1)*Mr
+           for j in 1:Mr
+              jn = nof + j
+              expsi[jn] = 0.0
+           end
+        end
+
+        for i in 1:icl
+            if (! (((Zmax - Za[i,kk]))*(Zmin - Za[i,kk]) <= 0.) && ((Rmax - Ra[i,kk]))*(Rmin - Ra[i,kk]) <= 0.)
+              for k = 1:Nm1:Nz
+                 nof = (k - 1)*Mr
+                 for j in 1:Mr
+                    jn = nof + j
+                    expsi[jn] = expsi[jn] + Ex[i,kk] * gfl(R[j], Ra[i,kk], Z[k] - Za[i,kk])
+                 end
+              end
+
+              for k in 1:Nz
+                 nof = (k - 1)*Mr
+                 for j in 1:Mm1:Mr
+                    jn = nof + j
+                    expsi[jn] = expsi[jn] + Ex[i,kk] * gfl(R[j], Ra[i,kk], Z[k] - Za[i,kk])
+                 end
+              end
+            end
+        end
+
+        eqsil!(expsi)
     end

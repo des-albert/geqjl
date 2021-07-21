@@ -17,24 +17,24 @@ function bound_matrix!()
 
     # Left - Right
 
-    for j in Mr:j2:Mr
+    for j in Mr:Mr:j2
         ip[kp] = j + 2
         ip[kp + 1] = j + Mm1
         kp += 2
     end
-    kp = kp + 1
+    kp = kp - 1
 
     # r - coordinates of boundary points, indexvector
 
-    ra = r0 - 1
-    rb = r0 + 1
-    za = 0
+    ra = r0 - 1.
+    rb = r0 + 1.
+    za = 0.
     zb = Nm1*az
     m2 = Mr - 2
     j2 = Mr * Nm1
 
-    rt = Vector{Float64}(undef, llp)
-    zt = Vector{Float64}(undef, llp)
+    rt = zeros(llp)
+    zt = zeros(llp)
 
     # Bottom - Top
 
@@ -45,7 +45,7 @@ function bound_matrix!()
         zt[nl] = za
         zt[nl + 1] = zb
         jp[nl] = i + 1
-        jp[nl + 1] = 1 + 1 + j2
+        jp[nl + 1] = i + 1 + j2
         nl += 2
     end
     
@@ -71,14 +71,14 @@ function bound_matrix!()
 
         nl = 1
         for j in 1:m2
-            aux[nl, i] = flux(rt[i], rt[nl], zt[i] - zt[nl])/(sh*rt[nl])
-            aux[nl + 1, i] = flux(rt[i], rt[nl + 1], zt[i] - zt[nl + 1])/(sh*rt[nl + 1])
+            aux[nl, i] = gfl(rt[i], rt[nl], zt[i] - zt[nl])/(sh*rt[nl])
+            aux[nl + 1, i] = gfl(rt[i], rt[nl + 1], zt[i] - zt[nl + 1])/(sh*rt[nl + 1])
             nl += 2
         end
 
         for j in 1:n2
-            aux[nl, i] = flux(rt[i], rt[nl], zt[i] - zt[nl])*sh/(rt[nl] + arh)
-            aux[nl + 1, i] = flux(rt[i], rt[nl + 1], zt[i] - zt[nl + 1])*sh/(rt[nl + 1] - arh)
+            aux[nl, i] = gfl(rt[i], rt[nl], zt[i] - zt[nl])*sh/(rt[nl] + arh)
+            aux[nl + 1, i] = gfl(rt[i], rt[nl + 1], zt[i] - zt[nl + 1])*sh/(rt[nl + 1] - arh)
             nl += 2
         end
 
@@ -87,10 +87,10 @@ function bound_matrix!()
     return nothing
 end
 
-function flux(rv, rst, zv)
+function gfl(rv, rst, zv)
 
     ak = 4.0*rv*rst/((rv + rst)^2 + zv^2)
     x = ((rv - rst)^2 + zv^2)/((rv + rst)^2 + zv^2)
-    return sqrt(rv*rst/ak)*((1 - ak/2.)*ellipk(x^2) - ellipe(x^2))/pi
+    return sqrt(rv*rst/ak)*((1 - ak/2.)*ellipk(1. - x) - ellipe(1. - x))/pi
 
 end
