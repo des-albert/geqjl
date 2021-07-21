@@ -5,8 +5,14 @@ using Base: Float64
     include("bound_matrix.jl")
     include("eqsil.jl")
     include("flux.jl")
+    include("splnco.jl")
+    include("intpol.jl")
 
     Nexp = 6
+    Mc = 15
+    Ng = 1
+    Nmax = 6
+    llmax = 16
 
     Mr = 1 + 2^Nexp
     Nz = Mr
@@ -60,8 +66,7 @@ using Base: Float64
 
     # Read Poloidal Field Coil Data
 
-    Mc = 15
-    Ng = 1
+
     ic = zeros(Int, 15)
     Ra = zeros(Ng, Mc)
     Za = zeros(Ng, Mc)
@@ -105,8 +110,8 @@ using Base: Float64
 
     #   Conditions to be satisfied by resulting equilibrium
 
-    elxp = abs(Offset - Zxpsn)/Apl
-    trixp = (Rmpl - Rxpsn)/Apl
+    elxp = abs(Offset - Zxpsn) / Apl
+    trixp = (Rmpl - Rxpsn) / Apl
 
     ityp = zeros(Int, 6)
     Rc = zeros(Mc)
@@ -122,35 +127,35 @@ using Base: Float64
 
     ityp[4] = 1
     Rc[4] = Rmpl - Apl
-    Zc[4]= Offset
+    Zc[4] = Offset
     ityp[5] = 1
     Rc[5] = Rmpl + Apl
     Zc[5] = Offset
     ityp[6] = 1
     Rc[6] = Rmpl - Apl*tri
-    Zc[6]= Offset + Apl*El
+    Zc[6] = Offset + Apl*El
 
     for j in 1:4
-       ang = j*pi/10.
+       ang = j*pi / 10.
        Rcc[j] = Rmpl + Apl*cos(ang + tri*sin(ang))
        Zcc[j] = Offset + El*Apl*sin(ang)
-       Rcc[j+4] = Rmpl + Apl*cos(ang + pi/2. + tri*sin(ang + pi/2.))
-       Zcc[j+4] = Offset + El*Apl*sin(ang + pi/2.)
+       Rcc[j + 4] = Rmpl + Apl*cos(ang + pi / 2. + tri*sin(ang + pi / 2.))
+       Zcc[j + 4] = Offset + El*Apl*sin(ang + pi / 2.)
     end
 
     for j in 1:4
-        al1 = Apl*(((1. + trixp)*(1. + trixp)) + elxp*elxp)/(2. * (1. + trixp))
-        al2 = Apl*(((1. - trixp)*(1.0 - trixp)) + elxp*elxp)/(2. * (1.0 - trixp))
-        anga = atan(2. * elxp*(1. + trixp)/(elxp*elxp - (1. + trixp)*(1. + trixp)))
-        angb = atan(2. * elxp*(1. - trixp)/(elxp*elxp - (1. - trixp)*(1. - trixp)))
+        al1 = Apl * (((1. + trixp) * (1. + trixp)) + elxp*elxp) / (2. * (1. + trixp))
+        al2 = Apl * (((1. - trixp) * (1.0 - trixp)) + elxp*elxp) / (2. * (1.0 - trixp))
+        anga = atan(2. * elxp * (1. + trixp) / (elxp*elxp - (1. + trixp) * (1. + trixp)))
+        angb = atan(2. * elxp * (1. - trixp) / (elxp*elxp - (1. - trixp) * (1. - trixp)))
         rc1 = Rmpl + Apl - al1
         rc2 = Rmpl - Apl + al2
-        ang1 = anga*j/5.
-        ang2 = angb*j/5.
-        Rcc[j+8] = rc1 + al1*cos(ang1)
-        Zcc[j+8] = Offset - al1*sin(ang1)
-        Rcc[j+12] = rc2 - al2*cos(ang2)
-        Zcc[j+12] = Offset - al2*sin(ang2)
+        ang1 = anga*j / 5.
+        ang2 = angb*j / 5.
+        Rcc[j + 8] = rc1 + al1*cos(ang1)
+        Zcc[j + 8] = Offset - al1*sin(ang1)
+        Rcc[j + 12] = rc2 - al2*cos(ang2)
+        Zcc[j + 12] = Offset - al2*sin(ang2)
     end
 
     if (mprfg)
@@ -164,10 +169,14 @@ using Base: Float64
     fool = zeros(MN)
     psiext = zeros(MN, Mc)
 
+    bb = zeros(Nmax, Mc)
+    eb = zeros(llmax, Mc)
+    cl = zeros(Mc + 1, Mc)
+
     for kk in 1:Mmax
         icl = ic[kk]
         for i in 1:Nz
-           nof = (i - 1)*Mr
+           nof = (i - 1) * Mr
            for j in 1:Mr
               jn = nof + j
               expsi[jn] = 0.0
@@ -175,24 +184,85 @@ using Base: Float64
         end
 
         for i in 1:icl
-            if (! (((Zmax - Za[i,kk]))*(Zmin - Za[i,kk]) <= 0.) && ((Rmax - Ra[i,kk]))*(Rmin - Ra[i,kk]) <= 0.)
+            if ( !(((Zmax - Za[i, kk]) * (Zmin - Za[i, kk]) <= 0.) && ((Rmax - Ra[i, kk]) * (Rmin - Ra[i, kk]) <= 0.)))
               for k = 1:Nm1:Nz
-                 nof = (k - 1)*Mr
+                 nof = (k - 1) * Mr
                  for j in 1:Mr
                     jn = nof + j
-                    expsi[jn] = expsi[jn] + Ex[i,kk] * gfl(R[j], Ra[i,kk], Z[k] - Za[i,kk])
+                    expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
                  end
               end
 
               for k in 1:Nz
-                 nof = (k - 1)*Mr
+                 nof = (k - 1) * Mr
                  for j in 1:Mm1:Mr
                     jn = nof + j
-                    expsi[jn] = expsi[jn] + Ex[i,kk] * gfl(R[j], Ra[i,kk], Z[k] - Za[i,kk])
+                    expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
                  end
               end
             end
         end
 
         eqsil!(expsi)
+
+
+        for i in 1:icl
+            if ( !(((Zmax - Za[i, kk]) * (Zmin - Za[i, kk]) > 0.) || ((Rmax - Ra[i, kk]) * (Rmin - Ra[i, kk]) > 0.)))
+                for k in 1:Nz
+                   nof = (k - 1) * Mr
+                   for j in 1:Mr
+                      jn = nof + j
+                      expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
+                   end
+                end
+            end
+        end
+
+        for j in 1:MN
+            psiext[j, kk] = expsi[j]
+        end
+
+        # Computation of matrix elements for exact conditions
+
+        splnco!(expsi)
+
+        for j in 1:Nmax
+            condit!(expsi, Rc[j], Zc[j], ityp[j], bb[j, kk])
+        end
+        for k in 1:llmax
+            condit!(expsi, Rcc[k], Zcc[k], 1, eb[k, kk])
+        end
+
+        # Computation of inductances
+
+        cl[kk, kk] = 0.
+        cl[Mmax + 1, kk] = 0.
+        for i in 1:icl
+            cl[Mmax + 1, kk] = cl[Mmax + 1,kk] + Ex[i,kk]
+            cl[kk,kk] = cl[kk,kk] + Ex[i,kk]^2 * 1.0e6 * (0.58 + log(Ra[i,kk]/Rl[i,kk]))/(2. * pi)
+        end
+
+
+        for i in 1:icl
+            ii = i + 1
+            if (ii <= ic[kk])
+                for j in ii:icl
+                    cl[kk,kk] = cl[kk,kk] + 2. * Ex[i,kk]*Ex[j,kk] * gfl(Ra[j,kk], Ra[i,kk], Za[j,kk]- Za[i,kk])
+                end
+            end
+        end
+
+        lp1 = kk + 1
+        if (lp1 <= Mmax)
+            for k in lp1:Mmax
+                icm = ic[k]
+                cl[kk,k] = 0.
+                for i in 1:icl
+                    for j in 1:icm
+                        cl[kk,k] = cl[kk,k] + Ex[i,kk]*Ex[j,k] * gfl(Ra[j,k], Ra[i,kk], Za[j,k] - Za[i,kk])
+                    end
+                end
+            end
+        end
+
     end

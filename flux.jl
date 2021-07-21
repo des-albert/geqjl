@@ -3,15 +3,14 @@ function flux!(psi)
     tc = zeros(llp)
     a = zeros(llp)
 
-
     nn = Nm1
     iu = Mm1 - 1
     itc = 2 * Mm1
-    lo = div(nn, 2)
+    lo = nn ÷ 2
     tc[itc + lo] = 0.
 
 @label  first
-    l = div(lo, 2)
+    l = lo ÷ 2
     tc[itc + l] = sqrt(2. + tc[itc + lo])
     lo = l
 @label middle
@@ -33,8 +32,8 @@ function flux!(psi)
         end
     end
 
-    lo = div(nn, 2)
-    j1 = 1 + Mr * div(Nm1, nn)
+    lo =  nn ÷ 2
+    j1 = 1 + Mr * (Nm1 ÷ nn)
     ju = Nm1*Mr
 
     for i in j1:Mr:ju
@@ -48,12 +47,12 @@ function flux!(psi)
     is = -1
 @label  last
     li = 2 * lo
-    iphase = 2*mode - div(li, nn)
-    jd = Mr * div(nn, li)
-    jh = div(jd, 2)
+    iphase = 2*mode - (li ÷ nn)
+    jd = Mr * nn ÷ li
+    jh = jd ÷ 2
     jt = jd + jh
     ji = 2*jd
-    jo = jd*mode*div(1 - is, 2) + 1
+    jo = jd * mode * ((1 - is) ÷ 2) + 1
 
     for j in jo:ji:ju
         j1 = j + 1
@@ -78,13 +77,12 @@ function flux!(psi)
                 psi[i] = psi[i + jd] + psi[i + jdm]
             end
         elseif (iphase == 4)
-            for i in jl:jiu
+            for i in j1:jiu
                 d = psi[i] - psi[i + jt] - psi[i + jtm]
                 psi[i] = psi[i] - psi[i + jh] - psi[i + jhm] + psi[i + jd] + psi[i + jdm]
                 a[i-j] = d + psi[i]
             end
         end
-
 
         for l in lo:li:nn
             d = 2. - tc[itc + l]
@@ -113,7 +111,7 @@ function flux!(psi)
             @goto last
         end
     elseif (iphase == 3 || iphase == 4)
-        lo = lo/2
+        lo = lo ÷ 2
         if (lo == 1)
             mode = 1
             @goto last
