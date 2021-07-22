@@ -7,6 +7,10 @@ using Base: Float64
     include("flux.jl")
     include("splnco.jl")
     include("intpol.jl")
+    include("startt.jl")
+    include("compar.jl")
+    include("xcur.jl")
+    include("gelg.jl")
 
     Nexp = 6
     Mc = 15
@@ -94,8 +98,6 @@ using Base: Float64
         end
     end
 
-    close(dataFile)
-
     Mmax = k - 1
 
     if(mprfg)
@@ -172,6 +174,7 @@ using Base: Float64
     bb = zeros(Nmax, Mc)
     eb = zeros(llmax, Mc)
     cl = zeros(Mc + 1, Mc)
+    fk = zeros(Mc + Nmax)
 
     for kk in 1:Mmax
         icl = ic[kk]
@@ -265,4 +268,66 @@ using Base: Float64
             end
         end
 
+    end
+
+    # Computation of a new case
+    icops, value = readdlm(IOBuffer(readline(dataFile)))
+    mpnmax = Mmax + Nmax + 1
+    if(icops > 2)
+        mpnmax += 1
+    end
+    totcurr, betapol, alfac = readdlm(IOBuffer(readline(dataFile)))
+    raxis, zaxis, zdes, alp = readdlm(IOBuffer(readline(dataFile)))
+    close(dataFile)
+
+    jdes = floor(Int, 0.1 + (raxis - R[1])/dr) + 1
+    jaxis = jdes
+    raxis = R[jaxis]
+    naxis = floor(Int, 0.1 + (zaxis - Z[1])/dz) + 1
+    zaxis = Z[naxis]
+    ndes = floor(Int, 0.1 + (abs(zdes) - Z[1])/dz) + 1
+    if (zdes > 0.)
+        zdes = Z[ndes]
+    end
+
+    println("Magnetic Axis  r = ", raxis, " z = ", zaxis)
+    println("Rail limiter  z = ", zdes," alp factor = ", alp)
+
+    if (llmax > 0)
+        alph = alp* 2. * pi/(llmax * raxis)
+    end
+
+    g = zeros(Mr, Nz)
+
+    startt!()
+
+    # Begin Iterations
+
+    icycle = 1
+    idecis = 0
+
+    com = zeros(Mr)
+
+    while (icycle < 20)
+        println(" Cycle number ", icycle)
+
+        eqsil!(g)
+
+        compar!()
+
+        for j in 1:MN
+            fool[j] = 0.
+            expsi[j] = g[j]
+        end
+
+        splnco!(expsi)
+
+        for j in 1:Nmax
+            condit!(expsi, Rc[j], Zc[j], ityp[j], bb[j, Mmax + 1])
+        end
+        for ll in 1:llmax
+            condit!(expsi, Rcc[ll], Zcc[ll], 1, eb[ll, Mmax + 1])
+        end
+
+        xcur!(expsi)
     end
