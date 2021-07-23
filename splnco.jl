@@ -4,9 +4,9 @@ function splnco!(psi)
 
     a1 = 4.
     for i in 1:4
-        a[i] = 1. /a1
+        a[i] = 1. / a1
         a1 = a1 - 2.
-        a[9-i] = 1. /a1
+        a[9 - i] = 1. / a1
         a1 = a1*a1
     end
 
@@ -51,8 +51,8 @@ function splnco!(psi)
             jh1 = Mr
             lend = Mr
             ls = 1
-            jh2 = min(Mr*16, Mr*(Nm1 ÷ 2))
-            il = (Nm1 - 1)*Mr
+            jh2 = min(Mr * 16, Mr * (Nm1 ÷ 2))
+            il = (Nm1 - 1) * Mr
             @goto start
         end
         k = 9 - k
@@ -72,8 +72,8 @@ function splnco!(psi)
         jh1 = Mr
         lend = Mr
         ls = 1
-        jh2 = min(Mr*16, Mr*(Nm1 ÷ 2))
-        il = (Nm1 - 1)*Mr
+        jh2 = min(Mr * 16, Mr * (Nm1 ÷ 2))
+        il = (Nm1 - 1) * Mr
         @goto start
     end
 @label last

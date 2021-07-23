@@ -1,6 +1,6 @@
 function condit!(v, rx, zx, itp, b)
-    x = (rx - Rmin)/dr
-    y = (zx - Zmin)/dz
+    x = (rx - Rmin) / dr
+    y = (zx - Zmin) / dz
 
     var = zeros(3)
     intpol!(v, x, y, var[1], var[3], var[2])
@@ -11,9 +11,9 @@ end
 
 function intpol!(v, x, y, fi, fx, fy)
 
-    p(x) = (a1*x + a2) * x/2. + 0.125 * a1
+    p(x) = (a1*x + a2) * x / 2. + 0.125 * a1
 
-    dp(x) = a1*x + a2/2.
+    dp(x) = a1*x + a2 / 2.
 
     af = zeros(3)
     adf = zeros(3)

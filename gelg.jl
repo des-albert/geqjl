@@ -23,7 +23,7 @@ function gelg!(rr, a, m, n, eps)
 
         # Test on singularity
 
-            if (piv < 0)
+            if (piv <= 0)
                 @goto last
             end
             if (ier == 0)
@@ -31,7 +31,7 @@ function gelg!(rr, a, m, n, eps)
                     ier = k - 1
                 end
             end
-            pivi = 1. /a[i]
+            pivi = 1. / a[i]
             j = (i - 1) ÷ m
             i = i - j*m - k
             j = j + 1 - k
@@ -66,6 +66,7 @@ function gelg!(rr, a, m, n, eps)
             end
 
             #  Row interchange and pivot row reduction in matrix a
+
             for l in lst:m:mm
                 ll = l + i
                 tb = pivi*a[ll]
@@ -80,15 +81,15 @@ function gelg!(rr, a, m, n, eps)
             # Element reduction and next pivot search
 !
             piv = 0.
-            lst = lst + 1
+            lst += 1
             j = 0
             for ii in lst:lend
-                pivi =  - a[ii]
+                pivi = -a[ii]
                 ist = ii + m
-                j = j + 1
+                j += 1
                 for l in ist:m:mm
                     ll = l - j
-                    a[l] = a[l] + pivi*a[ll]
+                    a[l] += pivi*a[ll]
                     tb = abs(a[l])
                     if (tb > piv)
                         piv = tb
@@ -100,7 +101,7 @@ function gelg!(rr, a, m, n, eps)
                     rr[ll] = rr[ll] + pivi*rr[l]
                 end
             end
-            lst = lst + m
+            lst += m
 
         end
 
@@ -122,8 +123,8 @@ function gelg!(rr, a, m, n, eps)
                         tb = rr[j]
                         ll = j
                         for k in ist:m:mm
-                            ll = ll + 1
-                            tb = tb - a[k]*rr[ll]
+                            ll += 1
+                            tb = tb - a[k] * rr[ll]
                         end
                         k = j + l
                         rr[j] = rr[k]
@@ -136,5 +137,6 @@ function gelg!(rr, a, m, n, eps)
 
     end
 @label  last
+    ier = -1
     return nothing
 end

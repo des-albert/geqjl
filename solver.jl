@@ -1,4 +1,4 @@
-using Base: Float64
+    using Base:Float64
     using DelimitedFiles
     using SpecialFunctions
 
@@ -11,6 +11,9 @@ using Base: Float64
     include("compar.jl")
     include("xcur.jl")
     include("gelg.jl")
+    include("topol.jl")
+    include("curf.jl")
+    include("plotit.jl")
 
     Nexp = 6
     Mc = 15
@@ -34,7 +37,7 @@ using Base: Float64
         Rmin = Rmpl - 32 * Apl / 20
         Rmax = Rmpl + 32 * Apl / 20
         Zmin = Offset - 32 * (Offset + abs(Zxpsn)) / 20
-        Zmax = Offset + 32 * (Apl*El) / 20
+        Zmax = Offset + 32 * (Apl * El) / 20
     end
 
 
@@ -50,13 +53,16 @@ using Base: Float64
 
     R = zeros(Mr)
     Z = zeros(Nz)
+    cjt = zeros(Mr)
+    pr = zeros(Mr)
+    bt2 = zeros(Mr)
 
     for i in 1:Mr
         R[i] = Rmin + (i - 1) * dr
     end
 
     for j in 1:Nz
-           Z[j] = Zmin + (j - 1) * dz
+        Z[j] = Zmin + (j - 1) * dz
     end
 
     println("Rmin = ", Rmin, " Rmax = ", Rmax, " dr = ", dr)
@@ -65,10 +71,10 @@ using Base: Float64
 
     bound_matrix!()
 
-    println("aux = ",aux[53, 12])
+    println("aux = ", aux[53, 12])
 
 
-    # Read Poloidal Field Coil Data
+        # Read Poloidal Field Coil Data
 
 
     ic = zeros(Int, 15)
@@ -94,23 +100,23 @@ using Base: Float64
             end
         end
         if (ic[k] < 1)
-                break
+            break
         end
     end
 
     Mmax = k - 1
 
-    if(mprfg)
+    if (mprfg)
         println("Conductor groups available for optimization")
         for k in 1:Mmax
-            println("Group : ",k)
+            println("Group : ", k)
             for i in 1:ic[k]
-                println("   ",Ra[i, k],"  ", Za[i, k],"   ",Ex[i, k])
+                println("   ", Ra[i, k], "  ", Za[i, k], "   ", Ex[i, k])
             end
         end
     end
 
-    #   Conditions to be satisfied by resulting equilibrium
+        #   Conditions to be satisfied by resulting equilibrium
 
     elxp = abs(Offset - Zxpsn) / Apl
     trixp = (Rmpl - Rxpsn) / Apl
@@ -134,36 +140,36 @@ using Base: Float64
     Rc[5] = Rmpl + Apl
     Zc[5] = Offset
     ityp[6] = 1
-    Rc[6] = Rmpl - Apl*tri
-    Zc[6] = Offset + Apl*El
+    Rc[6] = Rmpl - Apl * tri
+    Zc[6] = Offset + Apl * El
 
     for j in 1:4
-       ang = j*pi / 10.
-       Rcc[j] = Rmpl + Apl*cos(ang + tri*sin(ang))
-       Zcc[j] = Offset + El*Apl*sin(ang)
-       Rcc[j + 4] = Rmpl + Apl*cos(ang + pi / 2. + tri*sin(ang + pi / 2.))
-       Zcc[j + 4] = Offset + El*Apl*sin(ang + pi / 2.)
+        ang = j * pi / 10.
+        Rcc[j] = Rmpl + Apl * cos(ang + tri * sin(ang))
+        Zcc[j] = Offset + El * Apl * sin(ang)
+        Rcc[j + 4] = Rmpl + Apl * cos(ang + pi / 2. + tri * sin(ang + pi / 2.))
+        Zcc[j + 4] = Offset + El * Apl * sin(ang + pi / 2.)
     end
 
     for j in 1:4
-        al1 = Apl * (((1. + trixp) * (1. + trixp)) + elxp*elxp) / (2. * (1. + trixp))
-        al2 = Apl * (((1. - trixp) * (1.0 - trixp)) + elxp*elxp) / (2. * (1.0 - trixp))
-        anga = atan(2. * elxp * (1. + trixp) / (elxp*elxp - (1. + trixp) * (1. + trixp)))
-        angb = atan(2. * elxp * (1. - trixp) / (elxp*elxp - (1. - trixp) * (1. - trixp)))
+        al1 = Apl * (((1. + trixp) * (1. + trixp)) + elxp * elxp) / (2. * (1. + trixp))
+        al2 = Apl * (((1. - trixp) * (1.0 - trixp)) + elxp * elxp) / (2. * (1.0 - trixp))
+        anga = atan(2. * elxp * (1. + trixp) / (elxp * elxp - (1. + trixp) * (1. + trixp)))
+        angb = atan(2. * elxp * (1. - trixp) / (elxp * elxp - (1. - trixp) * (1. - trixp)))
         rc1 = Rmpl + Apl - al1
         rc2 = Rmpl - Apl + al2
-        ang1 = anga*j / 5.
-        ang2 = angb*j / 5.
-        Rcc[j + 8] = rc1 + al1*cos(ang1)
-        Zcc[j + 8] = Offset - al1*sin(ang1)
-        Rcc[j + 12] = rc2 - al2*cos(ang2)
-        Zcc[j + 12] = Offset - al2*sin(ang2)
+        ang1 = anga * j / 5.
+        ang2 = angb * j / 5.
+        Rcc[j + 8] = rc1 + al1 * cos(ang1)
+        Zcc[j + 8] = Offset - al1 * sin(ang1)
+        Rcc[j + 12] = rc2 - al2 * cos(ang2)
+        Zcc[j + 12] = Offset - al2 * sin(ang2)
     end
 
     if (mprfg)
         println("  Single null case: boundary points ")
         for j in 1:16
-            println(" ",j,"  ",Rcc[j],"  ",Zcc[j])
+            println(" ", j, "  ", Rcc[j], "  ", Zcc[j])
         end
     end
 
@@ -179,30 +185,30 @@ using Base: Float64
     for kk in 1:Mmax
         icl = ic[kk]
         for i in 1:Nz
-           nof = (i - 1) * Mr
-           for j in 1:Mr
-              jn = nof + j
-              expsi[jn] = 0.0
-           end
+            nof = (i - 1) * Mr
+            for j in 1:Mr
+                jn = nof + j
+                expsi[jn] = 0.0
+            end
         end
 
         for i in 1:icl
             if ( !(((Zmax - Za[i, kk]) * (Zmin - Za[i, kk]) <= 0.) && ((Rmax - Ra[i, kk]) * (Rmin - Ra[i, kk]) <= 0.)))
-              for k = 1:Nm1:Nz
-                 nof = (k - 1) * Mr
-                 for j in 1:Mr
-                    jn = nof + j
-                    expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
-                 end
-              end
+                for k = 1:Nm1:Nz
+                    nof = (k - 1) * Mr
+                    for j in 1:Mr
+                        jn = nof + j
+                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
+                    end
+                end
 
-              for k in 1:Nz
-                 nof = (k - 1) * Mr
-                 for j in 1:Mm1:Mr
-                    jn = nof + j
-                    expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
-                 end
-              end
+                for k in 1:Nz
+                    nof = (k - 1) * Mr
+                    for j in 1:Mm1:Mr
+                        jn = nof + j
+                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
+                    end
+                end
             end
         end
 
@@ -212,11 +218,11 @@ using Base: Float64
         for i in 1:icl
             if ( !(((Zmax - Za[i, kk]) * (Zmin - Za[i, kk]) > 0.) || ((Rmax - Ra[i, kk]) * (Rmin - Ra[i, kk]) > 0.)))
                 for k in 1:Nz
-                   nof = (k - 1) * Mr
-                   for j in 1:Mr
-                      jn = nof + j
-                      expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
-                   end
+                    nof = (k - 1) * Mr
+                    for j in 1:Mr
+                        jn = nof + j
+                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
+                    end
                 end
             end
         end
@@ -225,7 +231,7 @@ using Base: Float64
             psiext[j, kk] = expsi[j]
         end
 
-        # Computation of matrix elements for exact conditions
+            # Computation of matrix elements for exact conditions
 
         splnco!(expsi)
 
@@ -236,13 +242,13 @@ using Base: Float64
             condit!(expsi, Rcc[k], Zcc[k], 1, eb[k, kk])
         end
 
-        # Computation of inductances
+            # Computation of inductances
 
         cl[kk, kk] = 0.
         cl[Mmax + 1, kk] = 0.
         for i in 1:icl
-            cl[Mmax + 1, kk] = cl[Mmax + 1,kk] + Ex[i,kk]
-            cl[kk,kk] = cl[kk,kk] + Ex[i,kk]^2 * 1.0e6 * (0.58 + log(Ra[i,kk]/Rl[i,kk]))/(2. * pi)
+            cl[Mmax + 1, kk] = cl[Mmax + 1, kk] + Ex[i, kk]
+            cl[kk, kk] = cl[kk, kk] + Ex[i, kk]^2 * 1.0e6 * (0.58 + log(Ra[i, kk] / Rl[i, kk])) / (2. * pi)
         end
 
 
@@ -250,7 +256,7 @@ using Base: Float64
             ii = i + 1
             if (ii <= ic[kk])
                 for j in ii:icl
-                    cl[kk,kk] = cl[kk,kk] + 2. * Ex[i,kk]*Ex[j,kk] * gfl(Ra[j,kk], Ra[i,kk], Za[j,kk]- Za[i,kk])
+                    cl[kk, kk] = cl[kk, kk] + 2. * Ex[i, kk] * Ex[j, kk] * gfl(Ra[j, kk], Ra[i, kk], Za[j, kk] - Za[i, kk])
                 end
             end
         end
@@ -259,10 +265,10 @@ using Base: Float64
         if (lp1 <= Mmax)
             for k in lp1:Mmax
                 icm = ic[k]
-                cl[kk,k] = 0.
+                cl[kk, k] = 0.
                 for i in 1:icl
                     for j in 1:icm
-                        cl[kk,k] = cl[kk,k] + Ex[i,kk]*Ex[j,k] * gfl(Ra[j,k], Ra[i,kk], Za[j,k] - Za[i,kk])
+                        cl[kk, k] = cl[kk, k] + Ex[i, kk] * Ex[j, k] * gfl(Ra[j, k], Ra[i, kk], Za[j, k] - Za[i, kk])
                     end
                 end
             end
@@ -270,38 +276,39 @@ using Base: Float64
 
     end
 
-    # Computation of a new case
+        # Computation of a new case
     icops, value = readdlm(IOBuffer(readline(dataFile)))
+    icops = Int(icops)
     mpnmax = Mmax + Nmax + 1
-    if(icops > 2)
+    if (icops > 2)
         mpnmax += 1
     end
     totcurr, betapol, alfac = readdlm(IOBuffer(readline(dataFile)))
     raxis, zaxis, zdes, alp = readdlm(IOBuffer(readline(dataFile)))
     close(dataFile)
 
-    jdes = floor(Int, 0.1 + (raxis - R[1])/dr) + 1
+    jdes = floor(Int, 0.1 + (raxis - R[1]) / dr) + 1
     jaxis = jdes
     raxis = R[jaxis]
-    naxis = floor(Int, 0.1 + (zaxis - Z[1])/dz) + 1
+    naxis = floor(Int, 0.1 + (zaxis - Z[1]) / dz) + 1
     zaxis = Z[naxis]
-    ndes = floor(Int, 0.1 + (abs(zdes) - Z[1])/dz) + 1
+    ndes = floor(Int, 0.1 + (abs(zdes) - Z[1]) / dz) + 1
     if (zdes > 0.)
         zdes = Z[ndes]
     end
 
     println("Magnetic Axis  r = ", raxis, " z = ", zaxis)
-    println("Rail limiter  z = ", zdes," alp factor = ", alp)
+    println("Rail limiter  z = ", zdes, " alp factor = ", alp)
 
     if (llmax > 0)
-        alph = alp* 2. * pi/(llmax * raxis)
+        alph = alp * 2. * pi / (llmax * raxis)
     end
 
     g = zeros(Mr, Nz)
 
     startt!()
 
-    # Begin Iterations
+        # Begin Iterations
 
     icycle = 1
     idecis = 0
@@ -330,4 +337,48 @@ using Base: Float64
         end
 
         xcur!(expsi)
+
+        xt1 = 0.
+        xt2 = 0.
+        xt3 = 0.
+
+        for i in 1:Mmax
+            for j in 1:ic[i]
+                curr = Ex[j,i] * fk[i]
+                xt1 += curr^2
+                xt2 += abs(curr)
+                xt3 +- abs(curr * Ra[j, i])
+            end
+        end
+
+        if (mprfg)
+            println("SIG(I^2) = ",xt1, "  SIG(ABS(I) = ", xt2, "  SIG(ABS(RI))) = ",xt3)
+        end
+
+        for k in 1:Mmax
+            for j in 1:MN
+                fool[j] += fk[k] * psiext[j,k]
+                g[j] += fk[k] * psiext[j,k]
+            end
+        end
+
+        saddle!()
+
+        println(" Saddle ", irsp, izsp, psicon)
+
+        if (irsp > 2)
+            if(mprfg)
+                println(" Saddle point r = ", R[irsp], " z = ", Z[izsp])
+            end
+        end
+        if (idecis > 0)
+            @goto pl
+        end
+
+        curf!()
+
     end
+
+@label pl
+
+    plotit!()
