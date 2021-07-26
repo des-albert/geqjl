@@ -34,7 +34,7 @@ function curf!()
     end
 
     global psicon
-    fabs = fmaxa + psicon
+    global fabs = fmaxa + psicon
 
     if (mprfg)
         @printf(" Magnetic Axis radius = %12.5f height = %12.5f psi = %12.5f\n", rax,zax,fabs)

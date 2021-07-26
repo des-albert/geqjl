@@ -9,9 +9,12 @@ ccall((:complx, "libdislin_d.so"), Nothing, ())
 end
 function contur(xray::Vector{Float64}, n::Int64, yray::Vector{Float64},
     m::Int64, zmat::Array{Float64, 2}, zlev::Float64)
-    zt = transpose(zmat)
 ccall((:contur, "libdislin_d.so"), Nothing, (Ptr{Float64}, Int32, Ptr{Float64}, 
-    Int32, Ptr{Float64}, Float64), xray, n, yray, m, zt, zlev)
+    Int32, Ptr{Float64}, Float64), xray, n, yray, m, zmat, zlev)
+end
+function curve(xray::Vector{Float64}, yray::Vector{Float64}, n::Int64)
+ccall((:curve, "libdislin_d.so"), Nothing, 
+            (Ptr{Float64}, Ptr{Float64}, Int32), xray, yray, n)
 end
 function disini()
 ccall((:disini, "libdislin_d.so"), Nothing, () )
@@ -28,11 +31,17 @@ ccall((:graf, "libdislin_d.so"), Nothing, (Float64, Float64, Float64,
     Float64, Float64, Float64, Float64, Float64), 
     x1, x2, x3, x4, x5, x6, x7, x8)
 end
+function name(s1::String, s2::String)
+ccall((:name, "libdislin_d.so"), Nothing, (Ptr{UInt8}, Ptr{UInt8}), s1, s2)
+end
 function pagera()
 ccall((:pagera, "libdislin_d.so"), Nothing, ())
 end
 function pagfll(i::Int64)
 ccall((:pagfll, "libdislin_d.so"), Nothing, (Int32,), i)
+end
+function polcrv(s::String)
+ccall((:polcrv, "libdislin_d.so"), Nothing, (Ptr{UInt8},), s)
 end
 function rlrec(x1::Float64, x2::Float64, x3::Float64, x4::Float64)
 ccall((:rlrec, "libdislin_d.so"), Nothing, (Float64, Float64, Float64, Float64), 
@@ -40,6 +49,12 @@ ccall((:rlrec, "libdislin_d.so"), Nothing, (Float64, Float64, Float64, Float64),
 end
 function setpag(s::String)
 ccall((:setpag, "libdislin_d.so"), Nothing, (Ptr{UInt8},), s)
+end
+function titlin(s::String, i::Int64)
+ccall((:titlin, "libdislin_d.so"), Nothing, (Ptr{UInt8}, Int32,), s, i)
+end
+function title()
+ccall((:title, "libdislin_d.so"), Nothing, ())
 end
 function xaxgit()
 ccall((:xaxgit, "libdislin_d.so"), Nothing, ())
@@ -76,13 +91,36 @@ global fabs
 
     color("blue")
 
+    t=zeros(Mr,Nz)
+    for i in 1:Mr, j in 1:Nz
+        t[i,j] = g[j,i]
+    end
+
     for i in 2:16
         plev = (psicon + (i - 1)*(fabs - psicon)/15.)
-        contur(R, Mr, Z, Nz, g, plev)
+        contur(R, Mr, Z, Nz, t, plev)
     end 
     color("red")
-    contur(R, Mr, Z, Nz, g, psicon)
+    contur(R, Mr, Z, Nz, t, psicon)
     endgrf()
+    disfin()
+
+    #   Current and Pressure profile
+
+    disini()
+    complx()
+    pagera()
+    pagfll(255)
+    color("blue")
+    polcrv("linear")
+    titlin("Current Density & Pressure", 1)
+    graf(3., 10., 3., 1., 0., 2., 0., 1.)
+    title()
+    name("Major Radius (m)","X")
+    color("red")
+    curve(R, cjt, Mr)
+    color("green")
+    curve(R, pr, Mr)
     disfin()
 
 end
