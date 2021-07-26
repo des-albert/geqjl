@@ -1,6 +1,6 @@
-function eqsil!(q)
+function eqsil!(q)    
 
-    qq = copy(q)
+    qq = deepcopy(q)  
 
     npn = Nm1*Mr
     for i in 1:Mr
@@ -16,11 +16,11 @@ function eqsil!(q)
     flux!(qq)
 
     for i in 1:llp
-         sum = 0.
-         for l = 1:llp
+        sum = 0.
+        for l = 1:llp
             sum += qq[ip[l]] * aux[l, i]
-         end
-         q[jp[i]] = q[jp[i]] + sum
+        end
+        q[jp[i]] = q[jp[i]] + sum
     end
 
     flux!(q)

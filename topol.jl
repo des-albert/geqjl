@@ -3,11 +3,13 @@ function topol!(lcod)
     ndi = [1, -1]
 
     lsym = 1
-    nxm = zeros(2)
+    nmx = zeros(2)
     if (naxis != 1)
         lsym = 2
     end
     lcod = 0
+    js = 0
+    global psicon
 
     for j in 1:Mr
         for n in 1:Nz
@@ -27,25 +29,27 @@ function topol!(lcod)
         for l in 1:lsym
             jma = jaxis
             n = naxis
-            for i in jma:Mr
+            for j in jma:Mr
                 if (g[j, n] == 0.)
+                    js = j
                     @goto L10
                 end
             end
             @goto L100
 @label L10
-            jmax = j - 1
+            jmax = js - 1
             jnu = Mr - jmax + 1
             for ji in jnu:Mr
                 j = Mr - ji + 1
                 if (g[j, n] == 0.)
+                    js = j
                     @goto L20
                 end
             end
             @goto L110
 
 @label L20
-            jmin = j + 1
+            jmin = js + 1
             while(true)
                 j1 = jmin - 1
                 j2 = jmax + 1
@@ -58,7 +62,7 @@ function topol!(lcod)
                 if ( jmax <= jmin)
                     @goto L90
                 end
-                n += ndi[1]
+                n += ndi[l]
                 if ( ! ((n < Nz) && (n > 1)))
                     @goto L140
                 end
@@ -67,49 +71,53 @@ function topol!(lcod)
                     for ji in jnu:Mr
                         j = Mr - ji + 1
                         if ( g[j,n] != 0.)
+                            js = j
                             @goto L30
                         end
                     end
                     @goto L70
 @label L30
-                    jmax = j
+                    jmax = js
                 else
-                    jman = jmax
+                    jma = jmax
                     for j in jma:Mr
                         if ( g[j,n] == 0.)
+                            js = j
                             @goto L40
                         end
                     end
                     @goto L120
 
 @label L40
-                    jmax = j - 1
+                    jmax = js - 1
                 end
                 jmi = jmin
                 if (g[jmin, n] == 0.)
                     for j in jmi:Mr
                         if ( g[j,n] != 0.)
+                            js = j
                             @goto L50
                         end
                     end
                     @goto L80
 @label L50
-                    jmin = j
+                    jmin = js
                 else
                     jnu = Mr - jmin + 1
                     for ji in jnu:Mr
                         j = Mr - ji + 1
                         if (g[j, n] == 0.)
+                            js = j
                             @goto L60
                         end
                     end
                     @goto L130
 @label L60
-                    jmin = j + 1
+                    jmin = js + 1
                 end
             end
 @label L70
-            n = n - nd1[l]
+            n -= ndi[l]
             @goto L90
 @label L80
             n -= 1
@@ -118,12 +126,14 @@ function topol!(lcod)
         end
 
         for n in 1:Nz
-            if ( (nmx[1] - n)*(nmx[2] -n) >= 0. )
+            if ( (nmx[1] - n)*(nmx[2] - n) >= 0. )
                 for j= 1:Mr
                     g[j,n] = 0.
                 end
             end
         end
+
+        return nothing
 
 @label L100
         println(" Plasma runs out of grid on outside at axis")
@@ -131,7 +141,7 @@ function topol!(lcod)
         @goto L150
 
 @label L110
-        println(" Plasma runs out of grid on indide at axis")
+        println(" Plasma runs out of grid on inside at axis")
         lcod = 6
         @goto L150
 

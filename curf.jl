@@ -8,6 +8,8 @@ function curf!()
 
     ffin(x, alfa) = (2. /(alfa + 1.)) * x^(alfa + 1.) - (1. /(2. * alfa + 1.)) * x^(2. * alfa + 1.)
 
+    lcod = 0
+    
     topol!(lcod)
 
     dint = zeros(10)
@@ -16,6 +18,8 @@ function curf!()
 
     fmaxa = 0.
     mcont = 0
+    rax = 0
+    zax = 0
 
     for j in 1:Mr
         for n in 1:Nz
@@ -29,13 +33,14 @@ function curf!()
         end
     end
 
+    global psicon
     fabs = fmaxa + psicon
 
     if (mprfg)
-        println(" Magnetic Axis radius = ", rax, " height = ", zax, " psi = ", fabs)
+        @printf(" Magnetic Axis radius = %12.5f height = %12.5f psi = %12.5f\n", rax,zax,fabs)
     end
     ipoi = 0
-    idoi = 0
+    idol = 0
     xalp = 0.
 
     for j = 1:Mr
@@ -105,8 +110,8 @@ function curf!()
     c0btr = (totcurr - c0pr*dint[1])/dint[2]
 
     if (mprfg)
-        println(" c0pr = ",c0pr, " c0btr =", c0btr)
-        println(" Plasma Area = ", dint[6], " Plasma Volume = ",dint[8])
+        @printf(" c0pr = %12.5f c0btr = %12.5f\n",c0pr,c0btr)
+        @printf(" Plasma Area = %12.5f  Plasma Volume = %12.5f\n\n",dint[6],dint[8])
     end
 
     for j in 1:Mr
@@ -143,6 +148,5 @@ function curf!()
     end
 
     return nothing
-
 
 end

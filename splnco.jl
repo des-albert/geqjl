@@ -1,12 +1,12 @@
-function splnco!(psi)
+function splnco!(pss)
 
-    a = zeros(8)
+    local as = zeros(8)
 
-    a1 = 4.
+    a1 = -4.
     for i in 1:4
-        a[i] = 1. / a1
+        as[i] = 1. / a1
         a1 = a1 - 2.
-        a[9 - i] = 1. / a1
+        as[9 - i] = 1. / a1
         a1 = a1*a1
     end
 
@@ -18,18 +18,18 @@ function splnco!(psi)
     jh2 = min(16, Mm1 ÷ 2 )
     il = Mm1 - 1
 
-@label  start
+@label  L20
     k = 1
     jh = jh1
     mode = 2
-@label middle
+@label L30
     j = 2 * jh
 
     for l in 1:ls:lend
         init = l + jh*mode
         iend = l + il
         for i in init:j:iend
-            psi[i] = psi[i] + (psi[i + jh] + psi[i - jh] - 2. * psi[i]) * a[k]
+            pss[i] = pss[i] + (pss[i + jh] + pss[i - jh] - 2. * pss[i]) * as[k]
         end
     end
     k += 1
@@ -37,34 +37,35 @@ function splnco!(psi)
     if (mode == 2)
         jh = 2 * jh
         if (jh < jh2)
-            @goto middle
+            @goto L30
         end
         mode = 1
         if (k == 5)
             jh = jh ÷ 2
             if (jh >= jh1)
-               @goto middle
+               @goto L30
             end
             if (jh1 == Mr)
-               @goto last
+               @goto L50
             end
             jh1 = Mr
             lend = Mr
             ls = 1
             jh2 = min(Mr * 16, Mr * (Nm1 ÷ 2))
             il = (Nm1 - 1) * Mr
-            @goto start
+            @goto L20
         end
         k = 9 - k
-        @goto middle
+        @goto L30
 
-    elseif(mode == 1)
+    elseif (mode == 1)
+
         jh = jh ÷ 2
         if(jh >= jh1)
-            @goto middle
+            @goto L30
         end
         if(jh1 == Mr)
-            @goto last
+            @goto L50
         end
 
         # Control for inner loop on rows
@@ -74,9 +75,9 @@ function splnco!(psi)
         ls = 1
         jh2 = min(Mr * 16, Mr * (Nm1 ÷ 2))
         il = (Nm1 - 1) * Mr
-        @goto start
+        @goto L20
     end
-@label last
+@label L50
     return nothing
 
 end

@@ -1,7 +1,7 @@
-module solver
-    using Base:Float64
+module geq
+    using Base:Float64  
     using DelimitedFiles
-    using SpecialFunctions
+    using Printf
 
     include("bound_matrix.jl")
     include("eqsil.jl")
@@ -10,13 +10,12 @@ module solver
     include("intpol.jl")
     include("startt.jl")
     include("compar.jl")
-    include("xcur.jl")
-    include("gelg.jl")
     include("topol.jl")
     include("curf.jl")
-    include("plotit.jl")
     include("saddle.jl")
-
+    include("xcur.jl")
+    include("gelg.jl")
+    include("plotit.jl")
 
     Nexp = 6
     Mc = 15
@@ -68,9 +67,9 @@ module solver
         Z[j] = Zmin + (j - 1) * dz
     end
 
-    println("Rmin = ", Rmin, " Rmax = ", Rmax, " dr = ", dr)
-    println("Zmin = ", Zmin, " Zmax = ", Zmax, " dz = ", dz)
-    println("alpha = ", alpha, " sh = ", sh, " ss = ", ss)
+    @printf("Rmin  = %7.3f Rmax = %7.3f dr = %7.3f\n", Rmin, Rmax, dr)
+    @printf("Zmin  = %7.3f Zmax = %7.3f dz = %7.3f\n", Zmin, Zmax, dz)
+    @printf("alpha = %7.3f sh   = %7.3f ss = %7.3f\n", alpha, sh, ss)
 
     bound_matrix!()
 
@@ -84,7 +83,7 @@ module solver
 
     k = 0
     while (true)
-        global k += 1
+        global k = k + 1
         ic[k] = 0
         while (true)
             rac, zac, exc = readdlm(IOBuffer(readline(dataFile)))
@@ -106,16 +105,16 @@ module solver
     Mmax = k - 1
 
     if (mprfg)
-        println("Conductor groups available for optimization")
+        println(" Conductor groups available for optimization")
         for k in 1:Mmax
             println("Group : ", k)
             for i in 1:ic[k]
-                println("   ", Ra[i, k], "  ", Za[i, k], "   ", Ex[i, k])
+                @printf("  %7.3f   %7.3f   %7.3f\n", Ra[i, k], Za[i, k], Ex[i, k])
             end
         end
     end
 
-        #   Conditions to be satisfied by resulting equilibrium
+    #   Conditions to be satisfied by resulting equilibrium
 
     elxp = abs(Offset - Zxpsn) / Apl
     trixp = (Rmpl - Rxpsn) / Apl
@@ -168,7 +167,7 @@ module solver
     if (mprfg)
         println("  Single null case: boundary points ")
         for j in 1:16
-            println(" ", j, "  ", Rcc[j], "  ", Zcc[j])
+            @printf(" %4i  %7.3f  %7.3f\n", j,Rcc[j],Zcc[j])
         end
     end
 
@@ -197,7 +196,7 @@ module solver
                     nof = (k - 1) * Mr
                     for j in 1:Mr
                         jn = nof + j
-                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
+                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk], 0.)
                     end
                 end
 
@@ -205,7 +204,7 @@ module solver
                     nof = (k - 1) * Mr
                     for j in 1:Mm1:Mr
                         jn = nof + j
-                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk])
+                        expsi[jn] = expsi[jn] + Ex[i, kk] * gfl(R[j], Ra[i, kk], Z[k] - Za[i, kk], 0.)
                     end
                 end
             end
@@ -229,7 +228,7 @@ module solver
             psiext[j, kk] = expsi[j]
         end
 
-            # Computation of matrix elements for exact conditions
+        # Computation of matrix elements for exact conditions
 
         splnco!(expsi)
 
@@ -238,9 +237,9 @@ module solver
         end
         for k in 1:llmax
             condit!(expsi, Rcc[k], Zcc[k], 1, eb, k, kk)
-        end
-
-            # Computation of inductances
+        end    
+    
+        # Computation of inductances
 
         cl[kk, kk] = 0.
         cl[Mmax + 1, kk] = 0.
@@ -254,7 +253,7 @@ module solver
             ii = i + 1
             if (ii <= ic[kk])
                 for j in ii:icl
-                    cl[kk, kk] = cl[kk, kk] + 2. * Ex[i, kk] * Ex[j, kk] * gfl(Ra[j, kk], Ra[i, kk], Za[j, kk] - Za[i, kk])
+                    cl[kk, kk] = cl[kk, kk] + 2. * Ex[i, kk] * Ex[j, kk] * gfl(Ra[j, kk], Ra[i, kk], Za[j, kk] - Za[i, kk], 0.)
                 end
             end
         end
@@ -266,15 +265,15 @@ module solver
                 cl[kk, k] = 0.
                 for i in 1:icl
                     for j in 1:icm
-                        cl[kk, k] += Ex[i, kk] * Ex[j, k] * gfl(Ra[j, k], Ra[i, kk], Za[j, k] - Za[i, kk])
+                        cl[kk, k] += Ex[i, kk] * Ex[j, k] * gfl(Ra[j, k], Ra[i, kk], Za[j, k] - Za[i, kk], 0.)
                     end
                 end
             end
         end
 
     end
-
-        # Computation of a new case
+    
+    # Computation of a new case
 
     icops, value = readdlm(IOBuffer(readline(dataFile)))
     icops = Int(icops)
@@ -296,8 +295,8 @@ module solver
         zdes = Z[ndes]
     end
 
-    println("Magnetic Axis  r = ", raxis," z = ",zaxis)
-    println("Rail limiter  z = ", zdes," alp factor = ",alp)
+    @printf("Magnetic Axis  r = %8.3f z = %8.3f\n", raxis,zaxis)
+    @printf("Rail limiter   z = %8.3f alpfactor = %10.3e\n",zdes,alp)
 
     if (llmax > 0)
         alph = alp * 2. * pi / (llmax * raxis)
@@ -318,10 +317,12 @@ module solver
 
     irsp = 0
     izsp = 0
-    global psicon = 0.0
+    psicon = 0.
+    fabs = 0.
+
 
     while (icycle <= 20)
-        println(" Cycle number ", icycle)
+        println(" ==== Cycle number ", icycle, " ====")
 
         eqsil!(g)
 
@@ -336,11 +337,9 @@ module solver
 
         for j in 1:Nmax
             condit!(expsi, Rc[j], Zc[j], ityp[j], bb, j, Mmax + 1)
-            println("ityp ",ityp[j]," bb ", bb[j, Mmax + 1])
         end
         for ll in 1:llmax
             condit!(expsi, Rcc[ll], Zcc[ll], 1, eb, ll, Mmax + 1)
-            println(" eb ", eb[ll, Mmax + 1])
         end
 
         xcur!()
@@ -349,19 +348,17 @@ module solver
         xt2 = 0.
         xt3 = 0.
 
-        println(" fk ",fk)
-
         for i in 1:Mmax
             for j in 1:ic[i]
                 curr = Ex[j,i] * fk[i]
                 xt1 += curr^2
                 xt2 += abs(curr)
-                xt3 +- abs(curr * Ra[j, i])
+                xt3 += abs(curr * Ra[j, i])
             end
         end
 
         if (mprfg)
-            println("SIG(I^2) = ",xt1, "  SIG(ABS(I) = ", xt2, "  SIG(ABS(RI))) = ",xt3)
+            @printf(" SIG(I^2) = %12.4f SIG(ABS(I) = %12.4f  SIG(ABS(RI))) = %12.4f\n",xt1,xt2,xt3)
         end
 
         for k in 1:Mmax
@@ -372,8 +369,6 @@ module solver
         end
 
         saddle!()
-        
-        println(" Saddle ", irsp, izsp, psicon)
 
         if (irsp > 2)
             if(mprfg)
@@ -390,7 +385,6 @@ module solver
 
     end
 
-
-    plotit!()
+    plotit()
 
 end    

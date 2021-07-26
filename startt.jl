@@ -7,13 +7,13 @@ function startt!()
     nmin = 2 * naxis - ndes
     njmax = ndes
 
-    if(njmax < nmin)
+    if(njmax <= nmin)
         njmax = nmin
         nmin = ndes
     end
     for j in nmin:njmax
         for i in 1:5
-            g[jaxis - 3 + i, j] = (cp * (1.0 - ((j - jaxis) / (ndes - naxis))^2)) * dz^2
+            g[jaxis - 3 + i, j] = (cp * (1.0 - ((j - naxis) / (ndes - naxis))^2)) * dz^2
         end
     end
     return nothing

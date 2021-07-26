@@ -1,12 +1,13 @@
-function gelg!(rr, a, m, n, eps)
+function gelg!(rr, ag, m, n, eps)
 
+    i = 0
     if (m > 0)
         ier = 0
         piv = 0.
         mm = m*m
         nm = n*m
         for l in 1:mm
-            tb = abs(a[l])
+            tb = abs(ag[l])
             if (tb > piv)
                 piv = tb
                 i = l
@@ -31,7 +32,7 @@ function gelg!(rr, a, m, n, eps)
                     ier = k - 1
                 end
             end
-            pivi = 1. / a[i]
+            pivi = 1. / ag[i]
             j = (i - 1) ÷ m
             i = i - j*m - k
             j = j + 1 - k
@@ -58,10 +59,10 @@ function gelg!(rr, a, m, n, eps)
             if (j > 0)
                 ii = j*m
                 for l in lst:lend
-                    tb = a[l]
+                    tb = ag[l]
                     ll = l + ii
-                    a[l] = a[ll]
-                    a[ll] = tb
+                    ag[l] = ag[ll]
+                    ag[ll] = tb
                 end
             end
 
@@ -69,14 +70,14 @@ function gelg!(rr, a, m, n, eps)
 
             for l in lst:m:mm
                 ll = l + i
-                tb = pivi*a[ll]
-                a[ll] = a[l]
-                a[l] = tb
+                tb = pivi*ag[ll]
+                ag[ll] = ag[l]
+                ag[l] = tb
             end
 
             # Save column interchange information
 
-            a[lst] = j
+            ag[lst] = j
 
             # Element reduction and next pivot search
 !
@@ -84,13 +85,13 @@ function gelg!(rr, a, m, n, eps)
             lst += 1
             j = 0
             for ii in lst:lend
-                pivi = -a[ii]
+                pivi = -ag[ii]
                 ist = ii + m
                 j += 1
                 for l in ist:m:mm
                     ll = l - j
-                    a[l] += pivi*a[ll]
-                    tb = abs(a[l])
+                    ag[l] += pivi*ag[ll]
+                    tb = abs(ag[l])
                     if (tb > piv)
                         piv = tb
                         i = l
@@ -118,13 +119,13 @@ function gelg!(rr, a, m, n, eps)
                     ii = lst - i
                     ist = ist - lst
                     l = ist - m
-                    l = floor(Int, a[l] + 0.5)
+                    l = floor(Int, ag[l] + 0.5)
                     for j in ii:m:nm
                         tb = rr[j]
                         ll = j
                         for k in ist:m:mm
                             ll += 1
-                            tb = tb - a[k] * rr[ll]
+                            tb = tb - ag[k] * rr[ll]
                         end
                         k = j + l
                         rr[j] = rr[k]
