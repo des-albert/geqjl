@@ -120,8 +120,8 @@ module geq
     trixp = (Rmpl - Rxpsn) / Apl
 
     ityp = zeros(Int, 6)
-    Rc = zeros(Mc)
-    Zc = zeros(Mc)
+    Rc = zeros(Nmax)
+    Zc = zeros(Nmax)
     Rcc = zeros(16)
     Zcc = zeros(16)
 
