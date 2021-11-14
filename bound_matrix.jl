@@ -96,7 +96,7 @@ function gfl(rv, rst, zv, del)
         xdl = log(y)
     end
 
-    return sqrt(rv*rst/ak)*((1. - ak/2.)*elk(y, xdl) - ele(y, xdl))/pi
+    return sqrt(rv*rst/ak)*((1. - ak/2.)*elk(y, xdl) - ele(y, xdl))/ π
 end
 
     p1(x) = (((.01736506451*x + .04757383546)*x + .06260601220)*x + .44325141463)*x + 1.0
@@ -110,6 +110,6 @@ function fl(rv, rst, zv)
 
     ak = 4.0*rv*rst/((rv + rst)^2 + zv^2)
     x = clamp(((rv - rst)^2 + zv^2)/((rv + rst)^2 + zv^2), 5.e-6, 1.0)
-    return sqrt(rv*rst/ak)*((1. - ak/2.)*ellipk(1. - x) - ellipe(1. - x))/pi
+    return sqrt(rv*rst/ak)*((1. - ak/2.)*ellipk(1. - x) - ellipe(1. - x))/ π
 
 end

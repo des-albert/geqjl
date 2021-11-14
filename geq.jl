@@ -142,11 +142,11 @@ module geq
     Zc[6] = Offset + Apl * El
 
     for j in 1:4
-        ang = j * pi / 10.
+        ang = j * π / 10.
         Rcc[j] = Rmpl + Apl * cos(ang + tri * sin(ang))
         Zcc[j] = Offset + El * Apl * sin(ang)
-        Rcc[j + 4] = Rmpl + Apl * cos(ang + pi / 2. + tri * sin(ang + pi / 2.))
-        Zcc[j + 4] = Offset + El * Apl * sin(ang + pi / 2.)
+        Rcc[j + 4] = Rmpl + Apl * cos(ang + π / 2. + tri * sin(ang + π / 2.))
+        Zcc[j + 4] = Offset + El * Apl * sin(ang + π / 2.)
     end
 
     for j in 1:4
@@ -245,7 +245,7 @@ module geq
         cl[Mmax + 1, kk] = 0.
         for i in 1:icl
             cl[Mmax + 1, kk] = cl[Mmax + 1, kk] + Ex[i, kk]
-            cl[kk, kk] = cl[kk, kk] + Ex[i, kk]^2 * 1.0e6 * (0.58 + log(Ra[i, kk] / Rl[i, kk])) / (2. * pi)
+            cl[kk, kk] = cl[kk, kk] + Ex[i, kk]^2 * 1.0e6 * (0.58 + log(Ra[i, kk] / Rl[i, kk])) / (2. * π)
         end
 
 
@@ -299,7 +299,7 @@ module geq
     @printf("Rail limiter   z = %8.3f alpfactor = %10.3e\n",zdes,alp)
 
     if (llmax > 0)
-        alph = alp * 2. * pi / (llmax * raxis)
+        alph = alp * 2. * π / (llmax * raxis)
     end
 
     close(dataFile)

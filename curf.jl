@@ -83,8 +83,8 @@ function curf!()
                 s[4] = ppin(gn, alfac) * fmaxa
                 s[5] = ffin(gn, alfac)/ rzy^2 * fmaxa
                 s[6] = 1.
-                s[7] = 2. * pi * rzy * ppin(gn, alfac)*fmaxa
-                s[8] = 2. * pi * rzy
+                s[7] = 2. * π * rzy * ppin(gn, alfac)*fmaxa
+                s[8] = 2. * π * rzy
                 s[9] = 0.
                 s[10] = 0.
 
@@ -103,10 +103,10 @@ function curf!()
     for k in 1:10
         dint[k] *= dz * dr
     end
-    xalp = 2. * pi * xalp*dr*dz
+    xalp = 2. * π * xalp*dr*dz
     xind = 2. * xalp / (totcurr*totcurr*Rmpl)
     cjm = 0.
-    c0pr = betapol*totcurr^2 / (8. * pi*dint[4])
+    c0pr = betapol*totcurr^2 / (8. * π *dint[4])
     c0btr = (totcurr - c0pr*dint[1])/dint[2]
 
     if (mprfg)
